@@ -14,7 +14,7 @@ import (
 )
 
 // TriggerConstantContract and return tx result
-func (g *GrpcClient) TriggerConstantContract(from, contractAddress, method, jsonString string) (*api.TransactionExtention, error) {
+func (g *GrpcClient) TriggerConstantContract(from, contractAddress, method string, paramData []byte) (*api.TransactionExtention, error) {
 	var err error
 	fromDesc := address.HexToAddress("410000000000000000000000000000000000000000")
 	if len(from) > 0 {
@@ -28,20 +28,13 @@ func (g *GrpcClient) TriggerConstantContract(from, contractAddress, method, json
 		return nil, err
 	}
 
-	param, err := abi.LoadFromJSON(jsonString)
-	if err != nil {
-		return nil, err
-	}
-
-	dataBytes, err := abi.Pack(method, param)
-	if err != nil {
-		return nil, err
-	}
+	signature := abi.Signature(method)
+	data := append(signature, paramData...)
 
 	ct := &core.TriggerSmartContract{
 		OwnerAddress:    fromDesc.Bytes(),
 		ContractAddress: contractDesc.Bytes(),
-		Data:            dataBytes,
+		Data:            data,
 	}
 
 	return g.triggerConstantContract(ct)
@@ -56,7 +49,7 @@ func (g *GrpcClient) triggerConstantContract(ct *core.TriggerSmartContract) (*ap
 }
 
 // TriggerContract and return tx result
-func (g *GrpcClient) TriggerContract(from, contractAddress, method, jsonString string,
+func (g *GrpcClient) TriggerContract(from, contractAddress, method string, paramData []byte,
 	feeLimit, tAmount int64, tTokenID string, tTokenAmount int64) (*api.TransactionExtention, error) {
 	fromDesc, err := address.Base58ToAddress(from)
 	if err != nil {
@@ -68,20 +61,13 @@ func (g *GrpcClient) TriggerContract(from, contractAddress, method, jsonString s
 		return nil, err
 	}
 
-	param, err := abi.LoadFromJSON(jsonString)
-	if err != nil {
-		return nil, err
-	}
-
-	dataBytes, err := abi.Pack(method, param)
-	if err != nil {
-		return nil, err
-	}
+	signature := abi.Signature(method)
+	data := append(signature, paramData...)
 
 	ct := &core.TriggerSmartContract{
 		OwnerAddress:    fromDesc.Bytes(),
 		ContractAddress: contractDesc.Bytes(),
-		Data:            dataBytes,
+		Data:            data,
 	}
 	if tAmount > 0 {
 		ct.CallValue = tAmount
