@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 
+	"github.com/fbsobreira/gotron-sdk/pkg/abi"
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/fbsobreira/gotron-sdk/pkg/client/transaction"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
@@ -140,16 +141,26 @@ func contractSub() []*cobra.Command {
 				return fmt.Errorf("no signer specified")
 			}
 
-			param := ""
+			paramString := ""
 			if len(args) == 3 {
-				param = args[2]
+				paramString = args[2]
+			}
+
+			param, err := abi.LoadFromJSON(paramString)
+			if err != nil {
+				return err
+			}
+
+			paramBytes, err := abi.GetPaddedParam(param)
+			if err != nil {
+				return err
 			}
 
 			tx, err := conn.TriggerConstantContract(
 				signerAddress.String(),
 				addr.String(),
 				args[1],
-				param,
+				paramBytes,
 			)
 			if err != nil {
 				return err
@@ -197,16 +208,26 @@ func contractSub() []*cobra.Command {
 				tokenInt = int64(tAmount * math.Pow10(int(info.Precision)))
 			}
 
-			param := ""
+			paramString := ""
 			if len(args) == 3 {
-				param = args[2]
+				paramString = args[2]
+			}
+
+			param, err := abi.LoadFromJSON(paramString)
+			if err != nil {
+				return err
+			}
+
+			paramBytes, err := abi.GetPaddedParam(param)
+			if err != nil {
+				return err
 			}
 
 			tx, err := conn.TriggerContract(
 				signerAddress.String(),
 				addr.String(),
 				args[1],
-				param,
+				paramBytes,
 				feeLimit,
 				valueInt,
 				tTokenID,
